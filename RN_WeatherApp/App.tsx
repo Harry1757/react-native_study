@@ -18,21 +18,33 @@ const {width: SCREENWIDTH} = Dimensions.get('window');
 import * as Location from 'expo-location';
 
 function App(): JSX.Element {
-  const [location, setLocation] = useState();
+  const [city, setCity] = useState<any>('');
   const [ok, setOk] = useState(true);
 
-  const ask = async () => {
-    await Location.requestBackgroundPermissionsAsync();
+  const getWeather = async () => {
+    const {granted} = await Location.requestForegroundPermissionsAsync();
+    if (!granted) {
+      setOk(false);
+    }
+    const {
+      coords: {latitude, longitude},
+    } = await Location.getCurrentPositionAsync({accuracy: 5});
+    const nowLocation = await Location.reverseGeocodeAsync(
+      {latitude, longitude},
+      {useGoogleMaps: false},
+    );
+    setCity(nowLocation[0].city);
   };
 
   useEffect(() => {
-    ask();
+    getWeather();
   }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor="tomato" />
       <View style={styles.city}>
-        <Text style={styles.cityName}>Seoul</Text>
+        <Text style={styles.cityName}>{city}</Text>
       </View>
       <ScrollView
         horizontal
